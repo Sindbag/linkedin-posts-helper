@@ -71,3 +71,17 @@ My experience: {experience}.
 Generate a post for my LinkedIn blog, topic: "{topic}", desired length: {length}, desired format: {post_format}.
 Only heading and body. The length must be {length}, pay attention to format.
 """
+
+@app.route("/gen_image", methods=("GET", "POST"))
+def generate_image():
+    # TODO: add try-catch for KeyError
+    if request.method == "POST":
+        form = request.get_json()
+        topic = form["topic"]
+        response = openai.Image.create(
+            prompt=f"Illustration for linkedin post: '{topic}'",
+            n=1,
+            size="1024x1024"
+        )
+        return jsonify({"response": response['data'][0]['url']})
+    return abort(403, "GET method is not allowed")
