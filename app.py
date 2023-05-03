@@ -65,12 +65,14 @@ def generate_post():
         return jsonify({"response": response.choices[0].text})
     return abort(403, "GET method is not allowed")
 
+
 def prompt_gen_post(profession, experience, topic, length, post_format):
     return f"""Brief review of my LinkedIn profile: I am {profession}.
 My experience: {experience}.
 Generate a post for my LinkedIn blog, topic: "{topic}", desired length: {length}, desired format: {post_format}.
 Only heading and body. The length must be {length}, pay attention to format.
 """
+
 
 @app.route("/gen_image", methods=("GET", "POST"))
 def generate_image():
@@ -85,3 +87,43 @@ def generate_image():
         )
         return jsonify({"response": response['data'][0]['url']})
     return abort(403, "GET method is not allowed")
+
+
+@app.route("/gen_comment", methods=("GET", "POST"))
+def generate_comment():
+    # TODO: add try-catch for KeyError
+    if request.method == "POST":
+        form = request.get_json()
+        topic = form["topic"]
+        author = form["author"]
+        author_profession = form["author_profession"]
+        author_background = form["author_background"]
+        commentator_profession = form["commentator_profession"]
+        commentator_background = form["commentator_background"]
+        response = openai.Completion.create(
+            model="text-davinci-003",
+            prompt=prompt_gen_comment(
+                topic=topic,
+                author=author,
+                author_profession=author_profession,
+                author_background=author_background,
+                commentator_profession=commentator_profession,
+                commentator_background=commentator_background,
+            ),
+            max_tokens=1000,
+            temperature=0.6,
+        )
+        return jsonify({"response": response.choices[0].text})
+    return abort(403, "GET method is not allowed")
+
+
+def prompt_gen_comment(
+    topic, commentator_profession, commentator_background,
+    author, author_profession, author_background,
+):
+    return f'''LinkedIn: {author} is {author_profession}, experience: {author_background}.
+{author} posted on LinkedIn: {topic}.
+
+You are {commentator_profession}, with experience: {commentator_background}.
+
+Give a short professional opinion on {author}'s LinkedIn post as a comment for author, body only:'''
